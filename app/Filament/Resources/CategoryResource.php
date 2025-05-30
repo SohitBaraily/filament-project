@@ -39,7 +39,13 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('5s')
+            ->defaultSort('id', 'desc')
+            ->paginated([1,2,3,5,10, 20, 50, 100])
             ->columns([
+                Tables\Columns\TextColumn::make('index')
+                    ->label('No.')
+                    ->rowIndex(),
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('slug')

@@ -10,6 +10,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -75,16 +76,27 @@ class ArticleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->poll('1s')
+            ->poll('5s')
             ->defaultSort('id', 'desc')
             ->paginated([1,2,3,5,10, 20, 50, 100])
             ->columns([
+                Tables\Columns\TextColumn::make('index')
+                    ->label('No.')
+                    ->rowIndex(),
+                Tables\Columns\TextColumn::make('categories.title')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('title')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('views')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status'),
+                Tables\Columns\SelectColumn::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
+                    ]),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -95,7 +107,18 @@ class ArticleResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
+                    ]),
+
+                SelectFilter::make('categories')
+                    ->relationship('categories', 'title')
+                    ->multiple()
+                    ->preload(),
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
